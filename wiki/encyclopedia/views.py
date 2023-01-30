@@ -18,6 +18,11 @@ class NewForm(forms.Form):
     content = forms.CharField(widget=forms.Textarea)
 
 
+class EditForm(forms.Form):
+    title = forms.CharField(label="title")
+    content = forms.CharField(widget=forms.Textarea)
+
+
 def index(request):
 
     if request.method == "POST":
@@ -45,8 +50,6 @@ def index(request):
 
                 )
 
-                return render(request, "encyclopedia/query.html",)
-
             return render(request, "encyclopedia/index.html", {
                 "form": form,
                 "entries": util.list_entries()
@@ -69,7 +72,31 @@ def get(request, title):
         })
 
     return render(request, "encyclopedia/page.html", {
-        "topic": topic
+        "topic": topic,
+        "title": title
+    })
+
+
+def edit(request, title):
+
+    if request.method == "POST":
+        etopic = EditForm(request.POST)  # etopic is the name of the form
+        if etopic.is_valid():
+            etitle = etopic.cleaned_data["title"]  # extracting the title
+            content = etopic.cleaned_data["content"]  # extracting the content
+
+            util.save_entry(etitle, content)  # save entries
+
+            return render(request, "encyclopedia/index.html", {
+                "entries": util.list_entries(),
+                "form": SearchForm()
+            })
+    content = util.get_entry(title)
+    initial_date = {"title": title, "content": content}
+
+    return render(request, "encyclopedia/edit.html", {
+        "form3": EditForm(initial=initial_date),
+        "form": SearchForm()
     })
 
 
