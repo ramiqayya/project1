@@ -12,6 +12,12 @@ class SearchForm(forms.Form):
         attrs={'placeholder': 'Search Encyclopedia'}))
 
 
+class NewForm(forms.Form):
+    title = forms.CharField(label="title", widget=forms.TextInput(
+        attrs={'placeholder': 'Title'}))
+    content = forms.CharField(widget=forms.Textarea)
+
+
 def index(request):
 
     if request.method == "POST":
@@ -56,8 +62,39 @@ def get(request, title):
 
     topic = util.get_entry(title)
     if not topic:
-        return render(request, "encyclopedia/error.html")
+        return render(request, "encyclopedia/error.html", {
+            "code": 404,
+            "message": "Topic is not found"
+
+        })
 
     return render(request, "encyclopedia/page.html", {
         "topic": topic
+    })
+
+
+def new(request):
+
+    if request.method == "POST":
+        topicf = NewForm(request.POST)  # topicf is the name of the form
+        if topicf.is_valid():
+            newt = topicf.cleaned_data["title"]  # extracting the title
+            content = topicf.cleaned_data["content"]  # extracting the contact
+            if newt in util.list_entries():  # check if the title is already exists
+                return render(request, "encyclopedia/error.html", {
+                    "code": 403,
+                    "message": "This topic is already exists"
+
+                })
+
+            util.save_entry(newt, content)  # save entries
+
+            return render(request, "encyclopedia/index.html", {
+                "entries": util.list_entries(),
+                "form": SearchForm()
+            })
+
+    return render(request, "encyclopedia/new.html", {
+        "form2": NewForm(),
+        "form": SearchForm()
     })

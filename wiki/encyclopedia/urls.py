@@ -5,5 +5,7 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("<str:title>", views.get, name="get")
+
+    path("new", views.new, name="new"),
+    path("<str:title>", views.get, name="get"),
 ]
